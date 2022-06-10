@@ -64,7 +64,7 @@ class MyForegroundService: Service() {
 
 
     override fun onBind(intent: Intent?): IBinder? {
-        TODO("Not yet implemented")
+        return null
     }
     companion object {
         private const val CHANNEL_ID = "channel_id"
