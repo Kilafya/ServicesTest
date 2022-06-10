@@ -1,7 +1,8 @@
 package com.kilafyan.servicestest
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.kilafyan.servicestest.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -14,7 +15,12 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
         binding.simpleService.setOnClickListener {
+            stopService(MyForegroundService.newIntent(this))
             startService(MyService.newIntent(this))
+        }
+        binding.foregroundService.setOnClickListener {
+            val intent = MyForegroundService.newIntent(this)
+            ContextCompat.startForegroundService(this, intent)
         }
     }
 }
