@@ -22,5 +22,9 @@ class MainActivity : AppCompatActivity() {
             val intent = MyForegroundService.newIntent(this)
             ContextCompat.startForegroundService(this, intent)
         }
+        binding.intentService.setOnClickListener {
+            val intent = MyIntentService.newIntent(this)
+            ContextCompat.startForegroundService(this, intent)
+        }
     }
 }
