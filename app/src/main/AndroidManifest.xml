@@ -3,6 +3,7 @@
     package="com.kilafyan.servicestest" >
 
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+<!--    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />-->
 
     <application
         android:allowBackup="true"
@@ -22,6 +23,9 @@
         <service android:name=".MyService" />
         <service android:name=".MyForegroundService" />
         <service android:name=".MyIntentService" />
+        <service android:name=".MyIntentService2" />
+        <service android:name=".MyJobService"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
     </application>
 
 </manifest>
