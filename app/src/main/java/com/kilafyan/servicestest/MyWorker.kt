@@ -25,7 +25,7 @@ class MyWorker(
 
     companion object {
         private const val PAGE = "page"
-        const val WORK_NAME = "work name"
+        const val WORK_NAME = "MyWorker"
 
         fun makeRequest(page: Int): OneTimeWorkRequest {
             return OneTimeWorkRequestBuilder<MyWorker>().apply {
