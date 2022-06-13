@@ -14,7 +14,7 @@ class MyWorker(
         log("doWork")
         for (i in 0..10) {
             Thread.sleep(1000)
-            log("Timer $i page $page")
+            log("Timer $i page: $page")
         }
         return Result.success()
     }
