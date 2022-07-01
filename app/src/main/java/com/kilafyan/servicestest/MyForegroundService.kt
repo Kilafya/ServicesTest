@@ -5,6 +5,7 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.os.Binder
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
@@ -15,59 +16,77 @@ class MyForegroundService: Service() {
 
     private val coroutinesScope = CoroutineScope(Dispatchers.Main)
 
-    override fun onCreate() {
-        super.onCreate()
-        log("create")
-        createNotificationChannel()
-        val notification = createNotification()
-        startForeground(NOTIFICATION_ID, notification)
+    private val notificationManager by lazy {
+        getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+    }
+    private val notificationBuilder by lazy {
+        createNotificationBuilder()
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        coroutinesScope.launch {
-            for (i in 0..10) {
-                delay(1000)
-                log("Timer $i")
+    var onProgressChanged: ((Int) -> Unit)? = null
+
+        override fun onCreate() {
+            super.onCreate()
+            log("create")
+            createNotificationChannel()
+            startForeground(NOTIFICATION_ID, notificationBuilder.build())
+        }
+
+        override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+            coroutinesScope.launch {
+                for (i in 0..100 step 5) {
+                    delay(1000)
+                    val notification = notificationBuilder
+                        .setProgress(100, i, false)
+                        .build()
+                    log("Timer $i")
+                    notificationManager.notify(NOTIFICATION_ID, notification)
+                    onProgressChanged?.invoke(i)
+                }
+                stopSelf()
             }
-            stopSelf()
+            return START_NOT_STICKY
         }
-        return START_NOT_STICKY
-    }
 
-    private fun log(message: String) {
-        Log.d("FOREGROUND_SERVICE_TAG", "MyForegroundService: $message")
-    }
-
-    private fun createNotificationChannel() {
-        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notificationChannel = NotificationChannel(
-                CHANNEL_ID,
-                CHANNEL_NAME,
-                NotificationManager.IMPORTANCE_DEFAULT
-            )
-            notificationManager.createNotificationChannel(notificationChannel)
+        private fun log(message: String) {
+            Log.d("FOREGROUND_SERVICE_TAG", "MyForegroundService: $message")
         }
-    }
 
-    private fun createNotification() = NotificationCompat.Builder(this, CHANNEL_ID)
+        private fun createNotificationChannel() {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val notificationChannel = NotificationChannel(
+                    CHANNEL_ID,
+                    CHANNEL_NAME,
+                    NotificationManager.IMPORTANCE_DEFAULT
+                )
+                notificationManager.createNotificationChannel(notificationChannel)
+            }
+        }
+
+        private fun createNotificationBuilder() = NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Title")
             .setContentText("Text")
             .setSmallIcon(R.drawable.ic_launcher_background)
-            .build()
+            .setProgress(100, 0, false)
+            .setOnlyAlertOnce(true)
 
 
-    override fun onBind(intent: Intent?): IBinder? {
-        return null
+        override fun onBind(intent: Intent?): IBinder {
+            return LocalBinder()
+        }
+
+        override fun onDestroy() {
+            coroutinesScope.cancel()
+            log("destroy")
+            super.onDestroy()
+        }
+
+    inner class LocalBinder: Binder() {
+
+        fun getService() = this@MyForegroundService
     }
 
-    override fun onDestroy() {
-        coroutinesScope.cancel()
-        log("destroy")
-        super.onDestroy()
-    }
-
-    companion object {
+        companion object {
         private const val CHANNEL_ID = "channel_id"
         private const val CHANNEL_NAME = "channel_name"
         private const val NOTIFICATION_ID = 1
